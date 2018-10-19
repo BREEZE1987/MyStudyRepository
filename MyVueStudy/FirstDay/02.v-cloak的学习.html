@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Page Title</title>
+
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <style>
+            /*[v-cloak] {
+                display: none;
+            }*/
+        </style>
+    </head>
+
+    <body>
+        <div id="app">
+            <!-- 使用 v-cloak 能够解决插值表达式闪烁的问题 -->
+            <p v-cloak>++++++++++++++{{ msg }}------------------</p>
+
+            <h4 v-text="msg">=========================</h4>
+            <!-- 默认 v-text 是没有闪烁问题的 -->
+            <!-- v-text会覆盖元素中原来的内容，但是插值表达式只会替换自己的这个占位符，不会把整个元素内容清空 -->
+
+            <div>{{ msg2 }}</div>
+            <div v-text="msg2"></div>
+            <div v-html="msg2">szssssfsfssfsf</div>
+
+            <!-- v-bind: 是 Vue 中，提供的用于绑定属性的指令 -->
+            <!-- <input type="button" value="按钮" v-bind:title="mytitle + '123'"/> -->
+            <!-- 注意：v-bind: 指令可以被简写为 :要绑定的属性值 -->
+
+            <!-- Vue 中提供了 v-on: 事件绑定机制 -->
+            <!-- <input type="button" value="按钮" :title="mytitle + '123'" v-on:click="alert('hello')"/> -->
+
+            <!-- <input type="button" value="按钮" :title="mytitle + '123'" v-on:click="show"/> -->
+            <input type="button" value="按钮" :title="mytitle + '123'" @click="show"/>
+
+        </div>
+
+        <script src="../js/vue.js"></script>
+
+        <script>
+            var vm = new Vue({
+                el: '#app',
+                data: {
+                    msg: '123',
+                    msg2: '<h1>哈哈，我是一个大大的 H1，我大，我骄傲</h2>',
+                    mytitle: '这是一个自己定义的 titile'
+                },
+                methods: {  //  这个 methods 属性中定义了当前 Vue 实例所有可用的方法
+                    show: function () {
+                        alert('Hello World!');
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
+
+<!-- 1.如何定义一个基本的 Vue 代码结构 -->
+<!-- 2.插值表达式 和 v-text -->
+<!-- 3.v-cloak -->
+<!-- 4.v-html -->
+<!-- 5.v-bind:    Vue 提供的属性绑定机棉     缩写是 : -->
+<!-- 6.v-on:      Vue 提供的事件绑定机制     缩写是 @ -->
