@@ -1,0 +1,172 @@
+Struts2 中创建 action 的几种方式
+
+在 struts2 中有三种方式来创建 Action 处理类：
+1、通过实现 Action 接口来创建 Action 的处理类；
+2、通过继承 ActionSupport 类来创建 Action 的处理类， Struts2 推荐使用这种方式
+3、无侵入性的实现
+
+
+Action 优化配置：
+1、在 Struts2 中，随着业务的增加，Action 的配置文件会急剧增加，导致配置文件膨胀的问题。
+Struts2 中提供了 3 种方式来解决这个问题。
+1)、通过动态方法来调用来解决；
+	a)、在常量中开启动态调用；
+	<constant name="struts.enable.DynamicMethodInvocation" value="true" />
+	
+	b)、配置 action 一个 Action 处理类，只需配置一次即可。不需要配置处理方法；
+	
+	c)、调用处理方法：actionName!method.action；
+	 	注意：使用动态方法调用需要注意不同处理方法的返回值是否一致的问题。会配置多个结果集。
+	 	这种方式不安全。
+	 	
+2)、通过通配符配置来解决；
+	
+	
+3)、通过注解来解决；
+
+
+
+ThreadLocal 和 ActionContext
+1、ThreadLocal，该类提供了线程局部（thread-local）变量。这些变量不同于它们的普通对应物，因为
+     访问某个变量（通过其 get 或 set 方法） 的每个线程都有自己的局部变量，它独立于变量的初始化副本。
+   ThreadLocal 实例通常是类中的 private static 字段，它们希望将状态与某一个线程
+    （例如，用户 ID 或 事务 ID ）相关联
+
+2、ThreadLocal 是一个容器，存放在该容器中的数据是线程安全的。 
+
+3、ActionContext 是 Struts2 的上下文对象。它的本质就是一个容器，也是一个 Map 结构的对象。
+   ActionContext 贯穿于整个 Action 的执行的生命周期，每次接受请求后都会新建一个 
+   ActionContext 对象，将 ServletAPI 中的数据存入到 ActionContext 中，实现了 Struts2
+     和 Servlet 的解耦。使得测试可以不依赖于容器。而且 ActionContext 是线程安全的。由于每次
+     请求都重新创建 ActionContext 对象，导致执行效率比 Servlet 更低。
+
+
+
+Ognl
+1、在 Struts2 中是通过 ognl 来设置值和取值的， ActionContext 作为 ognl 的上下文对象，
+	ValueStack 作为 ognl 的 root 对象。
+2、在 Struts2 中使用 ognl 表达式获取数据需要使用 struts2 的标签库，使用 struts2 的标签库，
+	需要注意页面一定通过滤器后才能解析 Struts2 的标签。
+	
+	
+ServletAPI
+1、在 Struts2 的开发中依然需要使用到 ServletAPI，比如，用户登录后需要将用户信息保存到 Session
+     中。在 Struts2 中有两种方式可以获取到 ServletAPI，一种是解耦方式，一种是耦合方式。
+2、1)、解耦的方式：
+  2)、耦合的方式：
+  	a)、直接通过 ServletActionContext 来获取
+  	b)、通过 ActionContext 对象获取 HttpServletRequest
+  	c)、通过 IOC 方式直接获取到 ServletAPI 对象
+  	
+
+
+Strut2 数据类型转换
+  1、在 Struts2 中，对常用的数据类型已经自动进行了类型转换工作。但是对于自定义类型 Struts2 
+  	没法去做类型转换工作，需要自定义类型转换器来实现类型的转换。
+  	
+  2、类型转换的实现步骤：
+    a)、创建一个类型转换器类，继承 StrutsTypeConverter 类
+    b)、在 src 下添加 xwork-conversion.properties 配置文件
+    
+
+
+ 数据校验：
+ 1、数据校验分为 2 类，一类是前端的数据校验，一般是通过 JS 实现，一类是后端的数据校验。
+      在对一些安全级别要求较高的项目都需要对其进行后端验证。Struts2 提供了两后端校验方法
+      一种是硬骗码，一种是校框架实现。
+ 2、如果要使用 Struts2 的数据校验功能，action 需要继承 ActionSupport 类。在该类中
+      提供了一个 validate 方法，可以将验证规则写在该方法中，只有方法执行通过后，才会执行
+      业务方法。
+3、实现步骤：
+   a)、业务处理类，继承 ActionSupport 类；
+   b)、在配置文件中配置 input 结果集；
+   c)、在页面中需要添加 Struts2 的标签库，并且添加错误标签。
+4、通过上述方法来实现数据校验会有一个问题：一个业务类中有多个业务方法，并且每个业务方法的
+     校验规则可能不一致，但是所有的业务方法都会通过 validate 方法。导致功能不实现。
+     在 Strust2中，如果一个业务中有多个业务方法，那么需要为每个业务方法添加自己的验证方法。
+     验证方法的命名规则为 validate+业务方法名（首字母大写）。这样执行业务方法时，执行顺序为
+     validateXXXX------>validate------>XXXX 业务方法。这样的话 validate 方法
+     中填写的是公共校验规则。
+5、使用 Struts2 提供的校验框架来实现数据校验。
+     实现步骤：
+     a)、创建 Jsp 页面；
+     b)、创建 Action 类；
+     c)、在 Action 类所在的包下面添加校验规则文件以 ActionClassName-validation.xml命名；
+     d)、配置 struts.xml 文件
+     
+ 
+ 
+ 拦截器
+ 1、Struts2 中的所有功能都是由拦截器来实现的。拦截器是 Struts2 的核心。拦截器和过滤器
+     非常的相似，过滤器过滤的是所有的请求，拦截器只过滤 Action。并且，在 Struts2 中所有
+     功能都是可插拔的。在 Struts2 中还可以自定义拦截器来实现一些 Struts2 没有提供的功能。
+  Struts2 中拦截器的实现是通过代理来实现的（AOP）。在 Struts2 中拦截器是单例的，所有
+  Action 共享相同拦截器，所以在拦截器中定义常量时要注意线程安全的问题。
+2、Struts2 中提供了很多拦截器来实现各种功能。在开发过程中可以根据不同的应用选择不同的
+      拦截器来实现功能。Struts2 提供了一系列默认的拦截器（拦截器栈）来实现功能。
+3、Struts2 的默认拦截器：（参考官方文档）
+4、Struts2 的默认拦截器是定义在 struts-default.xml中的。这些拦截器都是定义在 
+   struts-defualt 包下的。所以在例用 Struts2 时，定义的 package 要直接或间接继承
+   strtus-defualt。
+5、常见内置拦截器的使用，使用内置拦截器时需要引用拦截器；
+	1)、Timer 拦截器的使用：
+		a)、定义 action
+		b)、配置拦截器
+	2)、Token 拦截器的使用：
+		a)、在面中添加 token 标签
+		b)、在 action 配置文件中引用 token，及返回的结果集（invalid.token）
+		c)、编写失效页面
+
+
+自定义拦截器
+1、在开发过程上，经常会有使用到 Struts2 没有提供的一些功能，这时需要我们自定义拦截器来实现。
+     当引用自定义拦截后，Struts2 提供的默认拦截器将不起作用，需要引重新引入。
+2、自定义拦截器有两种实现方式：
+	a)、实现 Interceptor 接口
+	b)、继承 AbstractInterceptor 类
+3、自定义拦截器的实现步骤：
+	a)、	定义拦截器；
+	b)、在 package 标签中配置拦截器
+	c)、在使用的 action 中引用拦截器
+4、登录拦截器的实现
+
+5、拦截器栈引用：和引用拦截器一致，可以将拦截器栈当成拦截器来使用
+   Struts2 定义了默认的拦截器栈是 defaultStack，里面有默认的 18 个拦截器。
+6、拦截器拦截的是整个 Action, Action 中所有的业务方法都会被拦截。比较粗精粒度。有时只需要
+   拦截 Action 中某个方法或某几个方法就能实现功能，那么使用拦截器就会造成效率降低。这个时候
+   可以通过方法拦截器来解决这个问题。
+   方法拦截器的实现：
+
+
+
+文件上传
+1、大部分的应用都有文件上传的功能。在 Servlet 中可以使用第三方的插件来实现文件上传：
+   SmartFileUpload 和 commons-fileupload。
+2、文件上传步骤：
+	a)、新建项目；
+	b)、添加 JSP 页面，注意表单必须是 post 提交，并且设置 enctype="multipart/form-data"；
+	c)、添加文件上传处理类；
+	d)、编写 Struts2 配置文件
+	
+
+文件下载
+1、文件下载可以通过超链接直接实现。但是通过超链接下载的文件不安全。任何用户得到超链接都可
+     下载。没法实现权限的控制，浏览器如果能打开文件，那么浏览器会直接将文件打开。
+2、通过流的方式来下载文件即可对其进行控制。  
+
+
+Ajax
+1、在 Struts2 中依然可以使用 Servlet 的 Ajax 功能。
+2、Struts2 对 Ajax 也提供了支持，使用步骤：
+  a)、导入相关的 jar 包；
+  b)、编写 JSP 页面；
+  c)、编写业务处理类；
+  d)、编写配置文件；
+  
+ 
+ 
+ 异常处理
+1、异常处理在实际的应用开发中必不可少。比如：开发中不能将错误信息展示给用户看，需要对其
+     进行处理，给用一个更友好的提示。
+2、
+     

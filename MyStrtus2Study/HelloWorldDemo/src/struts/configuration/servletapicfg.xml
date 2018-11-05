@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<!-- strtus.xml 该文件名称固定 -->	
+<struts>
+	<package name="servletapi" namespace="/servletapi" extends="struts-default">
+		<action name="servletApiLogin" class="com.helloworld.action.servletapi.ServletApiAction" method="login">
+			<result name="success">/servletapi/servletapi_success.jsp</result>
+			<result name="login" type="redirect">/servletapi/servletapi_login.jsp</result>
+		</action>
+		
+		<action name="servletApiIocLogin" class="com.helloworld.action.servletapi.IocImplServletApiAction" method="ioclogin">
+			<result name="success">/servletapi/servletapi_success.jsp</result>
+			<result name="login" type="redirect">/servletapi/servletapi_login.jsp</result>
+		</action>
+		
+	</package>
+</struts>

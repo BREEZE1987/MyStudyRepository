@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<struts>
+
+	<!-- 设置文件上传的临时目录 -->
+	<constant name="struts.multipart.saveDir" value="C:\Users\BREEZE\Downloads" />
+	
+	<!-- 设置上传文件总大小，maxSize >= maximumSize -->
+	<constant name="struts.multipart.maxSize" value="208239700" />
+	
+	<package name="fileuploads" namespace="/fileupload" extends="struts-default">
+		
+		<action name="upload" class="com.helloworld.action.fileupload.UploadAction" method="upload">
+			<result name="success">/fileupload/upload_success.jsp</result>
+			<result name="error">/fileupload/upload_error.jsp</result>
+			<interceptor-ref name="fileUpload">
+				<!-- 设置上传单个文件大小 -->
+				<param name="maximumSize">208239700</param>
+			</interceptor-ref>
+			<interceptor-ref name="basicStack" />
+		</action>
+		
+		<action name="batchUpload" class="com.helloworld.action.fileupload.BatchUploadAction" method="batchUpload">
+			<result name="success">/fileupload/upload_success.jsp</result>
+			<result name="error">/fileupload/upload_error.jsp</result>
+			<interceptor-ref name="fileUpload">
+				<!-- 设置上传单个文件大小 -->
+				<param name="maximumSize">208239700</param>
+			</interceptor-ref>
+			<interceptor-ref name="basicStack" />
+		</action>
+		
+	</package>
+
+</struts>

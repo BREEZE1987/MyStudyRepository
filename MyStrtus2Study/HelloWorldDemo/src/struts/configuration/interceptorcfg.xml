@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<!-- strtus.xml 该文件名称固定 -->	
+<struts>
+	<package name="myinterceptors" namespace="/interceptor" extends="struts-default">
+		
+		
+		
+		<!-- 拦截器配置 -->
+		<interceptors>
+			<!-- name 自定义，在项目中唯一 -->
+			<interceptor name="myinterceptor" class="com.helloworld.interceptor.MyInterceptor" />
+			<interceptor name="logininterceptor" class="com.helloworld.interceptor.LoginInterceptor" />
+			
+			<interceptor name="methodinterceptor" class="com.helloworld.interceptor.MethodInterceptor"/>
+			
+			<!-- 
+				定义拦截器栈：
+				拦截器栈就是一组拦截器放在一个配置上，方便引用
+				在拦截器栈中可以引用多个拦截器，在真正调用时只需引一个栈即可
+				拦截器栈中可以引用另外一个拦截器栈 
+			-->
+			<interceptor-stack name="myStack">
+				<interceptor-ref name="myinterceptor" />
+				<interceptor-ref name="logininterceptor" />
+				
+				<interceptor-ref name="defaultStack" />
+				
+				<interceptor-ref name="methodinterceptor">
+					<!-- 配置哪些方法被拦截 -->
+					<param name="includeMethods">login,toSave</param>
+					<!-- 配置哪些方法不被拦截 -->
+					<!-- <param name="excludeMethods">save,login</param> -->
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		
+		<default-interceptor-ref name="myStack"/>
+		
+		<!-- 配置全局结果集 -->
+		<global-results>
+			<result name="login">/interceptor/interceptor_user_login.jsp</result>
+		</global-results>
+				
+		<action name="timeinterceptorLogin" class="com.helloworld.action.interceptor.TimerInterceptorAction" method="login">
+			
+			<result name="success">/interceptor/interceptor_success.jsp</result>
+			
+			<!-- 使用拦截器时需要在指定的 Action 中引用拦截器 -->
+			<interceptor-ref name="timer" />
+			<!-- 使用自定义的拦截器 -->
+			<interceptor-ref name="myinterceptor" />			
+		</action>
+		
+		<action name="timeinterceptortoSave" class="com.helloworld.action.interceptor.TimerInterceptorAction" method="toSave">
+			
+			<result name="success">/interceptor/interceptor_save.jsp</result>
+			
+		</action>
+		
+		<action name="timeinterceptorSave" class="com.helloworld.action.interceptor.TimerInterceptorAction" method="save">
+			
+			<result name="success">/interceptor/interceptor_success.jsp</result>
+			
+			<!-- 当用户重复提交时，会返回 invalid.token 结果集 -->
+			<result name="invalid.token">/interceptor/interceptor_invalid.jsp</result>
+			
+			<interceptor-ref name="token" />		
+		</action>
+		
+		
+		<action name="interceptorUserHello" class="com.helloworld.action.interceptor.InterceptorUserAction" method="hello">
+			<result name="success">/interceptor/interceptor_success.jsp</result>
+			<interceptor-ref name="logininterceptor" />
+		</action>
+		
+		<action name="interceptorUserLogin" class="com.helloworld.action.interceptor.InterceptorUserAction" method="login">
+			<result name="success">/interceptor/interceptor_success.jsp</result>
+			
+			<!-- <interceptor-ref name="myStack" /> -->
+			
+		</action>
+		
+		<action name="interceptorUserSave" class="com.helloworld.action.interceptor.InterceptorUserAction" method="save">
+			<result name="success">/interceptor/interceptor_success.jsp</result>
+			<interceptor-ref name="logininterceptor" />
+		</action>
+		
+		<action name="interceptorUsertoSave" class="com.helloworld.action.interceptor.InterceptorUserAction" method="toSave">
+			<result name="success">/interceptor/interceptor_user_save.jsp</result>
+			<interceptor-ref name="logininterceptor" />
+		</action>
+	</package>
+</struts>

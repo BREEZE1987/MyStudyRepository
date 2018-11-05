@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<!-- strtus.xml 该文件名称固定 -->	
+<struts>
+	<!-- 常量配置 -->
+	
+	<!-- 开发模式 -->
+	<constant name="struts.devMode" value="true" />
+	
+	<!-- 扩展名配置 -->
+	<constant name="struts.action.extension" value="zhangsan,do,action,," />
+	
+	<!-- 乱码解决 -->
+	<constant name="struts.i18n.encoding" value="utf-8" />
+	
+	<!-- 
+		package 分模块管理：
+		name 自定义但是不能重复，在一个项目中唯一
+		namespace 命名空间和 url 请求直接相关
+		如：/   请求为 /hello.action   /user  请求为 /user/hello.action
+		extends 必须直接或间接继承 struts-defalt
+	 -->
+	<package name="basicstruts2" namespace="/" extends="struts-default">
+		<!--
+			配置 action：
+			配置 url 和处理类的方法进行映射
+			name 为请求名称，不加后缀，如请求为 /index.action，则 name="index" 
+			class 处理类的完全限定名称，即包名+类型，如果不配置，由默认类来处理
+				  com.opensymphony.xwork2.ActionSupport
+			method 指定处理请求的方法，默认为 execute
+		-->
+		<action name="index" class="com.helloworld.action.HelloAction">
+			<!--
+				配置 result 结果集：
+				name 结果集名称和处理方法的返回值匹配，默认为 success，可以自定义
+				Struts2 提供了 5 个返回结果：
+					Action.SUCCESS	执行成功，跳转到下一个视图
+					Action.NONE		执行成功，不需要视图显示
+					Action.ERROR	执行失败，显示失败页面
+					Action.INPUT	要执行该 Action 需要更多的输入条件
+					Action.LOGIN 	需要登录后才执行
+				type 指定响应结果类型
+					dispatcher，转发，默认值 
+					redirect，重定向
+					redirectAction 重定向到 Action
+			-->
+			<result type="redirect">/index.jsp</result>
+		</action>
+		
+		<action name="hello" class="com.helloworld.action.HelloAction" method="hello">
+			<result name="success">helloworld.jsp</result>
+		</action>
+		
+		<action name="login" class="com.helloworld.action.LoginAction" method="login">
+			<result name="success">/success.jsp</result>
+		</action>
+		
+		<action name="modelLogin" class="com.helloworld.action.HelloModelDrivenAction" method="modelLogin">
+			<result name="success">/success.jsp</result>
+		</action>
+		
+		<action name="implementsInterface" class="com.helloworld.action.createtype.ImplementsInterfaceAction">
+			<result>/actionCreateType/success.jsp</result>
+		</action>
+		
+		<action name="extendsActionSupport" class="com.helloworld.action.createtype.ExtendsActionSupport">
+			<result>/actionCreateType/success.jsp</result>
+		</action>
+		
+		<action name="nonInvasive" class="com.helloworld.action.createtype.NonInvasiveAction">
+			<result>/actionCreateType/success.jsp</result>
+		</action>
+		
+	<!--
+		代码尽量规范，不要和自己过不去 
+		<action name="get" class="com.helloworld.action.LoginAction" method="getUserName">
+			<result>/success.jsp</result>
+		</action> 
+	-->
+		
+	</package>
+	
+</struts>
+
+<!--
+	Struts2 执行流程
+	发起请求 ———> 服务器接收请求并且交给 struts2 的前端控制器 ————> 跟据请求的 url 
+	查看 sturts.xml 中的 namespace + actionName 是否存在 —————> 执行 action 所对应类
+	的方法 ————> 根据方法的执行结果到 action 的结果集进行匹配 ————> 响应结果
+-->

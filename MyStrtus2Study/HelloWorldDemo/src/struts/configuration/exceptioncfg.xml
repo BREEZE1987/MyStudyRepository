@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<struts>
+
+	
+	<package name="StrutsException" namespace="/exception" extends="struts-default">
+		
+		<global-exception-mappings>
+			<exception-mapping result="userException" exception="com.helloworld.exception.UserException" />
+		</global-exception-mappings>
+		
+		<action name="delete" class="com.helloworld.action.exception.UserExceptionAction" method="delete">
+			<result name="success">/exception/exception_success.jsp</result>
+			<result name="userException">/exception/exception_info.jsp</result>
+			
+		</action>
+	</package>
+
+</struts>

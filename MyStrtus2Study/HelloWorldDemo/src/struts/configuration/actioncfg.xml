@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<struts>
+	
+	<!-- 开启动态方法调用 -->
+	<!-- <constant name="struts.enable.DynamicMethodInvocation" value="true" /> -->
+	
+	
+	<package name="actioncfg" namespace="/user" extends="struts-default">
+		<!-- <action name="save" class="com.helloworld.action.struts2cfg.UserDemoAction" method="save">
+			<result type="redirectAction">find</result>
+		</action>
+		<action name="delete" class="com.helloworld.action.struts2cfg.UserDemoAction" method="delete">
+			<result type="redirectAction">find</result>
+		</action>
+		<action name="update" class="com.helloworld.action.struts2cfg.UserDemoAction" method="update">
+			<result type="redirectAction">find</result>
+		</action>
+		<action name="find" class="com.helloworld.action.struts2cfg.UserDemoAction" method="find">
+			<result type="redirect">find</result>
+			<result name="list">/user/user_list.jsp</result>
+		</action> -->
+		
+		<!-- 
+			Struts2.5 以上的版本，在使用动态方法调用遇到的 
+				Method find for action userAction is not allowed!
+				及通配符的方式遇到的
+				There is no Action mapped for namespace [/user] and action name [find] associated with context path [/HelloWorldDemo]
+			这个问题，需加以下配置
+		-->
+		<global-allowed-methods>regex:.*</global-allowed-methods>
+		
+		<!-- <action name="userAction" class="com.helloworld.action.struts2cfg.UserDemoAction">
+			<result type="redirect">userAction!find.action</result>
+			<result name="list">/user/user_list.jsp</result>
+		</action> -->
+		
+		<!-- 
+			*表示一个或多个字符，占位符{1}表示匹配第一个 * 的内容
+			使用通配符配置时，需要注意如果有不是通配符的 action，先匹配 action 再匹配通配符
+			在实际应用的开发中，通配符比较常见
+			注意：如果使用通配符配置，那要注意不同处理方法的返回值问题。 
+		-->
+		<action name="*" class="com.helloworld.action.struts2cfg.UserDemoAction" method="{1}">
+			<result type="redirect">find</result>
+			<result name="list">/user/user_list.jsp</result>
+		</action>
+		
+	</package>
+
+</struts>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<!-- strtus.xml 该文件名称固定 -->	
+<struts>
+	<package name="validate" namespace="/validate" extends="struts-default">
+		
+		<action name="validateSave" class="com.helloworld.action.validate.UserValidateAction" method="save">
+			
+			<result name="success">/validate/validate_success.jsp</result>
+			<result name="input">/validate/validate_save.jsp</result>
+		</action>
+		
+		<action name="strutsValidateSave" class="com.helloworld.action.validate.UserStrutsValidatorAction" method="login">
+			
+			<result name="success">/validate/validate_success.jsp</result>
+			<result name="input">/validate/validate_login.jsp</result>
+		</action>
+		
+	</package>
+</struts>

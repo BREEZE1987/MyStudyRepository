@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<!-- strtus.xml 该文件名称固定 -->	
+<struts>
+
+	<!-- 引入其他配置文件，在团队开发中使用 -->
+	<include file="struts/configuration/system.xml" />
+	
+	<include file="struts/configuration/actioncfg.xml" />	
+	
+	<include file="struts/configuration/servletapicfg.xml" />
+	
+	<include file="struts/configuration/typeconverter.xml" />
+	
+	<include file="struts/configuration/validatecfg.xml" />
+	
+	<include file="struts/configuration/interceptorcfg.xml" />
+	
+	<include file="struts/configuration/fileuploadcfg.xml" />
+	
+	<include file="struts/configuration/filedownloadcfg.xml" />
+	
+	<include file="struts/configuration/ajax.xml" />
+	
+	<include file="struts/configuration/exceptioncfg.xml" />
+</struts>
