@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+	namespace 命名空间，作用是对 sql 进行分类化管理，理解 sql 隔离
+	注意：使用 mapper 代理方法开发，namespace 有特殊重要的作用，namespace 等于 mapper 接口的地址
+ -->
+ 
+<mapper namespace="com.breeze.mybatis.mapper.OrdersMapperCustom">
+	
+	<!-- 查询订单关联查询用户信息 -->
+	<select id="findOrderUser" resultType="com.breeze.mybatis.pojo.OrdersCustom">
+		SELECT orders.*, users.name, users.sex, users.address
+		FROM orders, users
+		WHERE orders.user_id = users.id
+	</select>
+	
+	<!--
+		订单查询关联用户的 resultMap
+		将整个查询的结果映射到  com.breeze.mybatis.pojo.Orders 中
+	-->
+	<resultMap type="com.breeze.mybatis.pojo.Orders" id="OdersUserResultMap">
+		<!-- 配置映射的订单信息 -->
+		<!--
+			 id: 指定查询列中的唯一标识，订单信息中的唯一标识，如果多个列组成唯一标识，配置多个 id
+			 column: 订单信息的唯一标识列
+			 property: 订单信息的唯一标识列所映射到 Orders 中的哪个属性
+		-->
+		<id column="id" property="id" />
+		<result column="user_id" property="userId" />
+		<result column="number" property="number" />
+		<result column="create_Time" property="createTime" />
+		<result column="note" property="note" />
+		<result column="order_status" property="orderStatus" />
+		
+		<!-- 配置映射的关联用户信息 -->
+		<!--
+			 association: 用于映射关联查询单个对象的信息
+			 property: 要将关联查询的用户信息映射到 Orders 中的哪个属性
+		-->
+		<association property="user" javaType="com.breeze.mybatis.pojo.User">
+			<!--
+				id: 关联查询用户的唯一标识
+				column: 指定唯一标识用户信息的列
+				property: 映射到 User 的哪个属性 
+			-->
+			<id column="user_id" property="id"/>
+			<result column="name" property="name"/>
+			<result column="sex" property="sex"/>
+			<result column="address" property="address"/>
+		</association>
+		
+	</resultMap>
+	
+	<select id="findOrdersUserResultMap" resultMap="OdersUserResultMap">
+		SELECT orders.*, users.name, users.sex, users.address
+		FROM orders, users
+		WHERE orders.user_id = users.id
+	</select>
+	
+	<!-- 
+		实现一对一查询小结：
+		resultType: 使用 resultType 实现较为简单，如果 pojo 中没有包括查询出来的列名，需要增加列对应的属性，即可完成映射。
+		如果没有查询结果的特殊建议使用 resultType。
+		
+		resultMap: 需要单独定义 resultMap，实现有点麻烦，如果有对查询结果有特殊要求，使用 resultMap 可以完成将关联查询映射 pojo 的属性中。
+				   resultMap 可以实现延迟加载，resultType 无法实现延迟加载。 
+		
+	-->
+	
+	<!-- 查询订单关联查询用户及订单明细，使用 resultMap -->	
+	<resultMap type="com.breeze.mybatis.pojo.Orders" id="OrdersAndOrderDetailResultMap" extends="OdersUserResultMap">
+		<!-- 配置映射的订单信息 -->
+		
+		<!-- 配置映身的关联用户信息 -->
+		
+		<!--
+			订单明细信息
+			一个订单关联查询出了多条明细，要使用 collection 进行映射
+			collection: 对关联查询到多条记录映射到集合对象中 
+			ofType: 指定映射到 List 集合属性中 pojo 的类型
+		-->
+		<collection property="orderDetails" ofType="com.breeze.mybatis.pojo.OrderDetail">
+			<!--
+				id: 订单明细唯一标识
+				property: 要将订单明细的唯一标识映射到  com.breeze.mybatis.pojo.OrderDetail 的哪个属性
+			-->
+			<id column="order_detail_id" property="id"/>
+			<result column="orders_id" property="ordersId"/>
+			<result column="items_id" property="itemsId"/>
+			<result column="items_num" property="itemsNum"/>
+		</collection>
+		
+	</resultMap>
+	
+	<select id="findOrdersAndOrderDetailResultMap" resultMap="OrdersAndOrderDetailResultMap">
+		SELECT orders.*, 
+		users.name, users.sex, users.address,
+		order_detail.id order_detail_id,
+		order_detail.items_id,
+		order_detail.items_num,
+		order_detail.orders_id
+		FROM orders, users, order_detail
+		WHERE orders.user_id = users.id 
+		AND order_detail.orders_id = orders.id
+	</select>
+	
+	<!-- 查询用户及购买的商品信息，使用 resultMap -->
+	<resultMap type="com.breeze.mybatis.pojo.User" id="UserAndItemsResultMap">
+		<!-- 用户信息 -->
+		<id column="user_id" property="id"/>
+		<result column="name" property="name"/>
+		<result column="sex" property="sex"/>
+		<result column="address" property="address"/>
+		
+		<!-- 
+			订单信息
+			一个用户对应多个订单，使用 collection 映射
+		-->
+		<collection property="orderList" ofType="com.breeze.mybatis.pojo.Orders">
+			<id column="id" property="id"/>
+			<result column="user_id" property="userId" />
+			<result column="number" property="number" />
+			<result column="create_Time" property="createTime" />
+			<result column="note" property="note" />
+			<result column="order_status" property="orderStatus" />
+			
+			<!--
+				订单明细
+				一个订单包括多个明细 
+			-->
+			<collection property="orderDetails" ofType="com.breeze.mybatis.pojo.OrderDetail">
+				<id column="order_detail_id" property="id"/>
+				<result column="orders_id" property="ordersId"/>
+				<result column="items_id" property="itemsId"/>
+				<result column="items_num" property="itemsNum"/>
+				
+				<!--
+					商品信息
+					一个订单明细对应一个商品 
+				-->
+				<association property="items" javaType="com.breeze.mybatis.pojo.Items">
+					<id column="" property=""/>
+					<result column="items_name" property="name"/>
+					<result column="items_detail" property="detail"/>
+					<result column="items_price" property="price"/>
+				</association>
+			</collection>
+			
+		</collection>
+	
+	</resultMap>
+	
+	<select id="findUserAndItemsResultMap" resultMap="UserAndItemsResultMap">
+		SELECT orders.*, 
+		users.name, users.sex, users.address,
+		order_detail.id order_detail_id,
+		order_detail.items_id,
+		order_detail.items_num,
+		order_detail.orders_id,
+		items.`name` items_name,
+		items.detail items_detail,
+		items.price items_price
+		FROM orders, users, order_detail, items
+		WHERE orders.user_id = users.id 
+		AND order_detail.orders_id = orders.id
+		AND items.id = order_detail.items_id
+	</select>
+	
+	<!--
+		resultMap 总结：
+		
+		1、resultType:
+		作用：将查询结果按照 sql 列名 pojo 属性名一致性映射到 pojo 中。
+		场合：
+		常见一睚明细记录的展示，比如用户购买商品明细，将关联查询信息全部展示在页面时，
+		此时可直接使用 resultType 将第一条记录映射到 pojo 中 ，
+		在前端页面遍历 List（List 中是 pojo 对象） 即可。
+		
+		2、resultMap:
+		使作 association 和 collection 完成一对一和一对多的高级映射（对结果有特殊的映射要求）。
+			1）、association: 
+			作用：将关联查询信息映射到一个 pojo 对象中。
+			场合：为了方便查询关联信息可以使用 association 
+			将关联订单信息映射为用户对象的 pojo 属性中，比如：查询订单及关联用户信息。
+			2）、使用 resultType 无法将查询结果映射到 pojo 对象的 pojo 属性中，
+			根据对结果集查询遍历的需要选择使用 resultType 还是 resultMap。
+			3）、collection:
+			作用：将关联查询信息映射到一个 List 集合中
+			场合：为了方便查询遍历关联信息可以使用 collection 将关联信息映射到 List 集合中，
+			比如，查询用户权限范围模块及模块下的菜单，可以使作 collection 将模块映射到模块 List 中，
+			将菜单列表映射到模块对象的菜单 List 属性中，这样的做的目的也是方便查询结果集进行遍历查询。
+				如果使用 resultType 无法将查询结果 映射到 List 中。
+	 -->
+	
+	
+	<!--
+		什么是延迟加载？
+		resultMap 可以实现高级映射（使用 association 和 collection 实现一对一及一对多映射时），
+		association、collection 具备延迟加载功能
+		
+		需求：
+		如果查询订单并且关联查询用户信息。如果先查询订单信息即可满足要求，当我们需要查询用户信息时再查询用户信息。
+		把对用户信息的按需去查询就是延迟加载。
+		
+		延迟加载：
+		先从单表查询，需要时再从关联表去关联查询，大大提高数据库性能，因为查询单表要比关联查询多张表速度要快。
+		
+	-->
+	
+	<!-- 延迟加载的 resultMap -->
+	<resultMap type="com.breeze.mybatis.pojo.Orders" id="OrdersUserLazyLoadingResultMap">
+		<!-- 对订单信息进行映射配置 -->
+		<id column="id" property="id" />
+		<result column="user_id" property="userId" />
+		<result column="number" property="number" />
+		<result column="create_Time" property="createTime" />
+		<result column="note" property="note" />
+		<result column="order_status" property="orderStatus" />
+		
+		<!-- 
+			实现对用户信息进行延迟加载
+			select: 指定延迟加载需要执行的 statement 的 id （是根据 user_id 查询用户信息的 statement）
+			要使用 UserMapper.xml 中 findUserById 完成根据用户 id（user_id）用户信息的查询，
+			如果 findUserById 不在本 mapper.xml 中，需要前边加 namespace
+			column: 订单信息中关联用户信息查询的列，是 user_id
+			关联的查询的 sql 可以理解为：
+			SELECT orders.*,
+				(SELECT `name` FROM users WHERE orders.user_id = users.id) user_name,
+				(SELECT sex FROM users WHERE orders.user_id = users.id) sex
+			FROM orders;   
+		-->
+		<association property="user" javaType="com.breeze.mybatis.pojo.User"
+		 select="com.breeze.mybatis.mapper.UsersMapper.findUserById" column="user_id">
+		</association>
+	</resultMap>
+	
+	<!-- 查询订单关联查询用户，用户信息需要延迟加载 -->
+	<select id="findOrdersUserLazyLoading" resultMap="OrdersUserLazyLoadingResultMap">
+		SELECT * FROM orders
+	</select>
+</mapper>

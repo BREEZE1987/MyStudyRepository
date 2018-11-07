@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+	namespace 命名空间，作用是对 sql 进行分类化管理，理解 sql 隔离
+	注意：使用 mapper 代理方法开发，namespace 有特殊重要的作用，namespace 等于 mapper 接口的地址
+ -->
+ 
+<mapper namespace="com.breeze.mybatis.mapper.UsersMapper">
+
+	<!-- 开启本 mapper 的 namespace 下的二级缓存 -->
+	<cache/>
+	
+	<!-- 在映射文件中要配置很多 SQL 语句 -->
+	
+	<!-- 通过 select 执行对数据库的查询 -->
+	<!-- 
+		id:标识映射文件中的 SQL，将 SQL 语句封装到 mapperStatement 对象中，所以 id 称为 statement 的 id
+		
+		parameterType:指定输入参数的类型，这里指定 int 型
+		
+		#{}表示一个点位符号
+		#{id}:其中的 id 表示接收输入的参数，参数名称就是 id，如果输入的参数是简单类型，#{} 中的参数名可以任意，可以是 value或其他名称
+		
+		resultType:指定 SQL 输出结果所映射的 Java 对象类型，select 指定 resultType 表示单条记录映射成的 Java 对象
+	-->
+	<select id="findUserById" parameterType="int" resultType="User" useCache="false">
+		SELECT * FROM `users` WHERE `id` = #{value}
+	</select>
+	
+	<!-- 根据用户名称模糊查询用户信息 -->
+	<!-- 
+		resultType: 指定就是单条记录所映射的 Java 对象类型
+		${}: 表示拼接 SQL 字符串，将拼接的内容不加任何修饰拼接在 SQL 中。
+		使用 ${ } 拼接 SQL，引起 SQL 注入，不建义使用
+		${value}: 接收输入参数的内容，如果传入类型是简单类型，${ } 中只能使用 value   
+	-->
+	<select id="findUsersByName" parameterType="java.lang.String" resultType="com.breeze.mybatis.pojo.User">
+		SELECT * FROM users WHERE name LIKE '%${value}%'
+	</select>
+	
+	<!-- 用户信息综合查询 -->
+	<!--
+		#{userCustom.sex}：取出 pojo 包装对象中性别值 
+		#{userCustom.name}：取出 pojo 包装对象中用户名称
+	 -->
+	<select id="findUserList" parameterType="com.breeze.mybatis.pojo.UserQueryVo" resultType="com.breeze.mybatis.pojo.UserCustom">
+		SELECT * FROM users
+		<where>
+			<!-- 引用 sql 片段的 id，如果 refid 指定的 id 不在本 mapper 文件中，需要前边加 namespace -->
+			<include refid="query_user_where"></include>
+			<!-- 在这里引用其他 sql 片段 -->
+		</where>
+	</select>
+	
+	<!-- 用户信息综合查询总数 -->
+	<!--
+		1、查询出来的结果集只有一行且一列，可以使用简单类型进行输出映射。
+		2、不管输出的是 pojo 单个对象还一个列表（List 中包括 pojo）,在 mapper.xml 中 resultType 指定的类型是一样的。
+		在 mapper.java 指定的方法返回值是单个对象类型
+		1）、输出单个 pojo 对象，方法返回值是单个对象类型。
+		2）、输出 pojo 对象列表 List，方法返回值是 List<pojo>。
+		生成的动态代理对象中是根据 mapper 方法的返回值类型确定是调用 selectOne（返回单个对象调用）还是 selectList（返回集合对象调用）
+	 -->
+	<select id="findUserCount" parameterType="com.breeze.mybatis.pojo.UserQueryVo" resultType="int">
+		SELECT COUNT(*) FROM users 
+		<where>
+			<!-- 引用 sql 片段的 id，如果 refid 指定的 id 不在本 mapper 文件中，需要前边加 namespace -->
+			<include refid="query_user_where"></include>
+			<!-- 在这里引用其他 sql 片段 -->
+		</where>
+	</select>
+	
+	<!-- 添加用户 -->
+	<!--
+		parameterType：指定输入参数类型是 pojo（包括用户信息） 
+		#{} 中指定 pojo 的属性名，接收到  pojo 对象的属性值， MyBatis 通过 OGNL 获得对象的属性值
+	 -->
+	 <insert id="insertUser" parameterType="com.breeze.mybatis.pojo.User">
+	 	<!--
+	 		将插入数据的主键返回，返回到  User 对象中
+	 		SELECT LAST_INSERT_ID(); 得到刚刚 Insert 进去的记录的主键值，只适用于自增主键
+	 		keyProperty: 将查询到的主键值设置到  parameterType 指定的对象的那个属性
+	 		order: SELECT LAST_INSERT_ID() 执行顺序，相对于 Insert 语句来说它的执行顺序
+	 		resultType: 指定 SELECT LAST_INSERT_ID()的结果类型 
+	 	 -->
+	 	<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+	 		SELECT LAST_INSERT_ID()
+	 	</selectKey>
+	 	
+	 	
+	 	<!--
+	 		使用 MySql 的 UUID() 函数成主键
+	 		执行过程：
+	 		首先，通过 UUID() 得到主键，将主键设置到 User 对象的 id 属性中
+	 		其次，在 insert 执行时，从 User 对象中取 id 属性值 
+	 		
+		 	<selectKey keyProperty="id" order="BEFORE" resultType="java.lang.String">
+		 		SELECT UUID()
+		 	</selectKey>
+		 	
+		 	INSERT INTO `users`(id, `name`, sex, birthday, address) 
+		 	VALUES (#{id}, #{name}, #{sex}, #{birthday}, #{address})
+	 		 
+	 	 -->
+	 	
+	 	INSERT INTO `users`(`name`, sex, birthday, address) 
+	 	VALUES (#{name}, #{sex}, #{birthday}, #{address})
+	 </insert>
+	 
+	 <!-- 删除用户 -->
+	 <!-- 根据用户 id 删除用户，需要输入 id 值 -->
+	 <delete id="deleteUserById" parameterType="java.lang.Integer">
+	 	DELETE FROM users WHERE id = #{id}
+	 </delete>
+	 
+	 <!-- 更新用户 -->
+	 <!--
+	 	根据 id 更新用户，
+	 	分析：
+	 	需要传用户的 id
+	 	需要传入用户信息
+	 	parameterType 指定 User 对象，包括 id 和更新信息，注意：id 必须存
+	 	#{id}：从输入 User 对象中获得 id 属性值
+	  -->
+	 <update id="updateUserById" parameterType="com.breeze.mybatis.pojo.User" flushCache="true">
+	 	UPDATE users SET `name` = #{name}, birthday = #{birthday}, 
+	 		sex = #{sex}, address = #{address} WHERE id = #{id}
+	 </update>
+	 
+	 <!--
+	 	使用 resultType 进行输出映射，只有查询出来的列名和 pojo 中的属性名一致，该列才可以映射成功。
+	 	如果查询出来的列名和 pojo 中的属性我全部不一致，没有创建 pojo 对象。
+	 	如果查询出来的列名和 pojo 中的属性有一个一致，就会创建 pojo 对象。 
+	 -->
+	  
+	 <!--
+	 	 如果查询出来的列名和 pojo 属性名不致，通过定义一个 resultMap 对列名和 pojo 属性名之间作一个映射关系。
+	 	 1、定义 resultMap；
+	 	 2、使用 resultMap 作为 statement 的输出映射类型；
+	 -->
+	  
+	 <!--
+		定义 resultMap 将  SELECT id id_, `name` name_ FROM users WHERE users.id = #{id}
+		和 User 类中的属性作一个映射关系数
+		
+		type: resultMap 是最终映射的 java 对象类型，可以使用别名
+		id: 对 resultMap 的唯一标识	 
+	 -->
+	  
+	 <resultMap type="user" id="userResultMap">
+	 	<!-- 
+	 		id: 表示查询结果集中唯一标识
+	 		column: 查询出来的列名
+	 		property: type 指定的 pojo 类型中的属性名
+	 		最终 resultMap 对 column 和 property 作一个映射关系（对应关系） 
+	 	-->
+	 	<id column="id_" property="id" />
+	 	
+	 	<!--
+	 		result: 对普通列名的映射定义
+	 		column: 查询出来的列名
+	 		property: type 指定的 pojo 类型中的属性名
+	 		最终 resultMap 对 column 和 property 用一个映射关系（对应关系） 
+	 	-->
+	 	<result column="name_" property="name"/>
+	 </resultMap>
+	  
+	 <!-- 
+	 	使用 resultMap 进行输出映射
+	 	resultMap: 指定定义的 resultMap 的 id，如果这个 resultMap在其它的 mapper 文件中，前边需要加 namespace 
+	 -->
+	 <select id="findUserByIdResultMap" parameterType="int" resultMap="userResultMap">
+	 	SELECT id id_, `name` name_ FROM users WHERE users.id = #{id}
+	 </select>
+	 
+	 <!--
+	 	定义 sql 片段
+	 	id: sql 片段的唯一标识
+	 	经验：是基于单表来定义 sql 片段， 这样的话这个 sql 片段的可重用性才高 
+	 -->
+	 <sql id="query_user_where">
+		<if test="userCustom != null">
+			<if test="userCustom.sex != null and userCustom.sex != ''">
+				AND users.sex = #{userCustom.sex}
+			</if>
+			<if test="userCustom.name != null and userCustom.name != ''">
+				AND users.name LIKE '%${userCustom.name}%'
+			</if>
+			<if test="ids != null">
+				<!--
+					使用 foreach 遍历传入 ids
+					collection: 指定输入对象中集合属性
+					item: 每个遍历生成对象
+					open: 开始遍历时拼接的串
+					close: 结事遍历时拼接的串
+					separator: 遍历的两个对象中需要拼接的串  
+				-->
+				<!--
+					使用实现
+					AND (users.id = 10 OR users.id = 27 OR users.id = 28 
+				
+				<foreach collection="ids" item="user_id" open="AND (" close=")" separator="OR">
+					users.id = #{user_id}
+				</foreach>
+				-->
+				
+				<!-- 实现 “ AND users.id IN (10, 27, 28)” 拼接 -->
+				<foreach collection="ids" item="user_id" open="AND users.id IN (" close=")" separator=",">
+					#{user_id}
+				</foreach>
+			</if>
+		</if>
+	 </sql>
+	
+</mapper>

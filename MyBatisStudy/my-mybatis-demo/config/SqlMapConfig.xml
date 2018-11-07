@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<!-- 加载 java 的配置文件或者声明属性信息 -->
+	<properties resource="db.properties">
+	<!--  
+		<property name="db.driver" value="com.mysql.cj.jdbc.Driver"/>
+		<property name="db.url" value="jdbc:mysql://192.168.31.177:3306/order_manager?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=true"/>
+		<property name="db.username" value="root" />
+		<property name="db.password" value="root"/>
+	-->
+	
+	<!--
+	
+		注意： MyBatis 将按照下面的顺序来加载属性
+		1、在 properties 元素体内定义的属性首先被读取
+		2、然后会读取 properties 元素中 resource 或 url 加载的属性，它会覆盖已读取的同名属性。
+		3、最后读取 parameterType 传递的属性，它会覆盖已读取的同名属性。
+		
+		建义：
+		不要在 properties 元素体内添加任何属性值，只将属性值定义在 properties 文件中
+		在 properties 文件中定义属性名要有一定的特殊性，如 xxxx.xxxx.xxxx
+	 
+	 -->
+	
+	</properties>
+	
+	
+	<!-- 全局参数设置 -->
+	<settings>
+		<!-- 打开延迟加载的开关 -->
+		<setting name="lazyLoadingEnabled" value="true"/>
+		<!-- 将积极加载改消极加载即按需加载 -->
+		<setting name="aggressiveLazyLoading" value="false"/>
+		<!-- 开启二级缓存 -->
+		<setting name="cacheEnabled" value="true"/>
+	</settings>
+	
+
+	<!-- 自定义别名 -->
+	<typeAliases>
+	<!--
+		在 mapper.xml 中，定义很多的 statement，statement 需要 parameterType 指定输入参数的类型，需要 resultType 指定输出结果的映射类型
+		如果在指定类型时输入类型全路径，不方便进行开发，可以针对 parameterType 或 resultType 指定的类型定义一些别名，在 mapper.xml 中通过别名定义，方便开发。
+		 
+	 -->
+		<!-- 针对单个别名的定义 -->
+		<!--  <typeAlias type="com.breeze.mybatis.pojo.User" alias="user"/> -->
+		
+		<!-- 批量别名定义（推荐） -->
+		<!-- 
+			package：指定包名称来为该包下的 pojo 类声明别名，默认的别名就是类名（首字母大小写都可）
+		--> 
+		<package name="com.breeze.mybatis.pojo" />
+	</typeAliases>	
+
+	<!-- 配置mybatis的环境信息，与spring整合，该信息由spring来管理，environments 配置将废除 -->
+	<environments default="development">
+		<environment id="development">
+			<!-- 配置 JDBC 事务控制，由 mybatis 进行管理 -->
+			<transactionManager type="JDBC" />
+			
+			<!-- 配置数据源，采用 mybatis 连接池 -->
+			<dataSource type="POOLED">
+				<property name="driver" value="${db.driver}" />
+				<property name="url" value="${db.url}" />
+				<property name="username" value="${db.username}" />
+				<property name="password" value="${db.password}" />
+			</dataSource>
+		</environment>
+	</environments>
+
+	<!-- 加载映射文件 -->
+	<mappers>
+		<mapper resource="sqlmap/Users.xml" />
+		<!-- 通过 resource 方法一次加载一个映射文件 -->
+		<!-- <mapper resource="mapper/UsersMapper.xml" /> -->
+		
+		<!-- 
+			通过 mapper 接口加载映射文件
+			遵循一些规范：需要将 mapper 接口类名和 mapper.xml 映射文件名称保持一致，且在一个目录中
+			上边的规范的前提是：使用的是 mapper 代理方法 
+		-->
+		<!--  <mapper class="com.breeze.mybatis.mapper.UsersMapper"/>  -->
+		
+		<!-- 批量加载映射文件（推荐使用） -->
+		<!-- 
+			通过 mapper 接口加载映射文件
+			遵循一些规范：需要将 mapper 接口类名和 mapper.xml 映射文件名称保持一致，且在一个目录中
+			上边的规范的前提是：使用的是 mapper 代理方法 
+		-->
+		<package name="com.breeze.mybatis.mapper" /> 
+		
+	</mappers>
+	
+	<!--
+		一级缓存是 SqlSession 级别的缓存，在操作数据库时需要构造 SqlSession 对象，
+		在对象中有一个数据结构为（HashMap）用于存储缓存数据。不同的 SqlSession 之间的
+		缓存数据区域（HashMap）是互相不影响的。
+		
+		二级缓存是 Mapper 级别的缓存，多个 SqlSession 去操作同一个 Mapper 的 Sql 语句，
+		多个 SqlSession 可以共用二级缓存，二级缓存是跨 SqlSession 的。 
+		
+		为什么要用缓存？
+		如果缓存中有数据就不用从数据库获取，大大提高数据系统性能。
+		
+		MyBatis 默认支持一级缓存，不需要在配置文件中支配置		
+	-->
+	
+	<!--
+		首先要开启二级缓存
+		
+		二级缓存与一级缓存的区别，二级缓存的范围更大，多个 SqlSession 可以共享一个 UserMapper 的二级缓存区域。
+		UserMapper 有一个二级缓存区域（按 namespace 分），其他 mapper 也有自己的二级缓存区域（按 namespace 分）。
+		
+		每一个 namespace 的 mapper 都一个二级缓存区域，两个 mapper 的 namesapce 如果相同，
+		这两个 mapper 执行 Sql 查询到数据将存在相同的二级缓存区域中。
+	-->
+	
+
+</configuration>
+
+
